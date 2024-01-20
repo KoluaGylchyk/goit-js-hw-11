@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vanilla App Template</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+  <body>
+    <h1>Image search app</h1>
 
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HW-JS-11</title>
-  <link rel="stylesheet" href="./css/styles.css" />
-</head>
-
-<body>
-  <div class="container">
-    <form id="form" class="form">
-      <label>
-        <input class="search-input" id="searchInput" type="text" placeholder="Search images..."
-          name="searchInput" /></label>
-      <button class="search-btn" type="submit">Search</button>
+    <form id="form">
+      <label for="search-input">Search</label>
+      <input type="text" id="search-input" required />
+      <button class="button" type="submit" id="search-button">Search</button>
     </form>
-    <span class="loader hide"></span>
-    <ul class="gallery" id="gallery"></ul>
-  </div>
-  <script type="module" src="./main.js"></script>
-</body>
 
+    <div id="loader" style="display: none">Loading...</div>
+
+    <div id="gallery">
+      <ul class="gallery"></ul>
+    </div>
+
+    <script type="module" src="./main.js"></script>
+  </body>
 </html>

@@ -1,31 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/goit-js-hw-11/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vanilla App Template</title>
-    
-    <script type="module" crossorigin src="/goit-js-hw-11/commonHelpers.js"></script>
-    <link rel="modulepreload" crossorigin href="/goit-js-hw-11/assets/vendor-46aac873.js">
-    <link rel="stylesheet" href="/goit-js-hw-11/assets/vendor-eb6030bc.css">
-    <link rel="stylesheet" href="/goit-js-hw-11/assets/index-0969e961.css">
-  </head>
-  <body>
-    <h1>Image search app</h1>
 
-    <form id="form">
-      <label for="search-input">Search</label>
-      <input type="text" id="search-input" required />
-      <button class="button" type="submit" id="search-button">Search</button>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/goit-js-hw-11/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HW-JS-11</title>
+  
+  <script type="module" crossorigin src="/goit-js-hw-11/commonHelpers.js"></script>
+  <link rel="modulepreload" crossorigin href="/goit-js-hw-11/assets/vendor-bad0427b.js">
+  <link rel="stylesheet" href="/goit-js-hw-11/assets/vendor-eb6030bc.css">
+  <link rel="stylesheet" href="/goit-js-hw-11/assets/index-cc7885b2.css">
+</head>
+
+<body>
+  <div class="container">
+    <form id="form" class="form">
+      <label>
+        <input class="search-input" id="searchInput" type="text" placeholder="Search images..."
+          name="searchInput" /></label>
+      <button class="search-btn" type="submit">Search</button>
     </form>
+    <span class="loader hide"></span>
+    <ul class="gallery" id="gallery"></ul>
+  </div>
+  
+</body>
 
-    <div id="loader" style="display: none">Loading...</div>
-
-    <div id="gallery">
-      <ul class="gallery"></ul>
-    </div>
-
-    
-  </body>
 </html>

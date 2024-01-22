@@ -1,138 +1,104 @@
-import iziToast from 'izitoast';
-import 'izitoast/dist/css/iziToast.min.css';
+import axios from 'axios';
+import showMessage from './libraries-scripts/iziToast';
+import lightbox from './libraries-scripts/lightbox.js';
 
-import SimpleLightbox from 'simplelightbox';
-import 'simplelightbox/dist/simple-lightbox.min.css';
+const API_KEY = '41474300-2fa05bee877be877b8dc1781f';
+const API_BASE_URL = 'https://pixabay.com/api/';
+axios.defaults.baseURL = API_BASE_URL;
 
-const BASE_URL = 'https://pixabay.com/api/';
-const API_KEY = '41701983-23ca5d5908e2c78927e8095f2';
+const form = document.querySelector('#form'),
+  searchInput = document.querySelector('#searchInput'),
+  gallery = document.querySelector('#gallery'),
+  loader = document.querySelector('.loader');
 
-const lightbox = new SimpleLightbox('.gallery-item');
+let userSearchRequest;
 
-const getBaseUrl = () => {
-  const url = new URL(BASE_URL);
-  url.searchParams.append('key', API_KEY);
-  url.searchParams.append('image_type', 'photo');
-  url.searchParams.append('orientation', 'horizontal');
-  url.searchParams.append('safesearch', true);
+form.addEventListener('submit', handleFormSubmit);
 
-  return url;
-};
-
-const fetchImg = query => {
-  const url = getBaseUrl();
-  url.searchParams.append('q', query);
-
-  return fetch(url)
-    .then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! Status: ${res.status}`);
-      }
-      return res.json();
-    })
-    .then(data => data.hits)
-    .catch(error => {
-      console.error(`Error fetching images:`, error);
-      throw error;
-    });
-};
-
-const renderGallery = images => {
-  const galleryContainer = document.getElementById('gallery');
-  galleryContainer.innerHTML = '';
-
-  images.forEach(image => {
-    const {
-      webformatURL,
-      largeImageURL,
-      tags,
-      likes,
-      views,
-      comments,
-      downloads,
-    } = image;
-    galleryContainer.insertAdjacentHTML(
-      'beforeend',
-      `
-    <li class="gallery-item">
-    <a href="${largeImageURL}">
-      <img src="${webformatURL}" alt="${tags}"/>
-    <a/>
-    <p>Likes: ${likes}<p/>
-    <p>view: ${views}<p/>
-    <p>comments: ${comments}<p/>
-    <p>downloads: ${downloads}<p/>
-    </li>
-    `
-    );
-  });
-
-  lightbox.refresh();
-};
-
-let loader = document.getElementById('loader');
-let searchButton = document.getElementById('search-button');
-
-const showLoadingIndicator = () => {
-  loader.style.display = 'block';
-
-  searchButton.disabled = true;
-};
-
-const hideLoadingIndicator = () => {
-  loader.style.display = 'none';
-
-  searchButton.disabled = false;
-};
-
-const showMessage = (message, type = 'info') => {
-  iziToast[type]({
-    title: message,
-    position: 'topCenter',
-  });
-};
-
-const handleSearсhFormSubmit = event => {
-  event.preventDefault();
-
-  const searchInput = document.getElementById('search-input');
-  const query = searchInput.value.trim();
-
-  if (query.length < 3) {
-    showMessage('Please enter a search query', 'warning');
-    return;
+async function handleFormSubmit(e) {
+  e.preventDefault();
+  userSearchRequest = searchInput.value.trim();
+  loader.classList.add('hide');
+  if (!userSearchRequest) {
+    return showMessage('Please enter your search query!');
   }
+  resetGallery();
+  await fetchAndRenderImages();
+}
 
-  showLoadingIndicator();
-
-  fetchImg(query)
-    .then(images => {
-      hideLoadingIndicator();
-      if (images.length > 0) {
-        renderGallery(images);
-      } else {
-        showMessage(
-          'Sorry, there are no images matching your search query. Please try again.',
-          'error'
-        );
-      }
-    })
-    .catch(error => {
-      hideLoadingIndicator();
-      showMessage('Error fetching images. Pease try again later.', 'error');
+async function fetchAndRenderImages() {
+  try {
+    const response = await axios.get(API_BASE_URL, {
+      params: getAPIParams(),
     });
-};
+    const images = response.data;
+    if (images.hits.length === 0) {
+      return showMessage(
+        'Sorry, no images match your search query. Please try again!'
+      );
+    }
+    renderImages(images.hits);
+  } catch (error) {
+    handleAPIError();
+  } finally {
+    loader.classList.add('hide');
+  }
+}
 
-const searchForm = document.getElementById('form');
-searchForm.addEventListener('submit', handleSearсhFormSubmit);
+function renderImages(images) {
+  const markup = images.reduce(
+    (
+      html,
+      { webformatURL, largeImageURL, tags, likes, views, comments, downloads }
+    ) =>
+      html +
+      `
+        <li class="gallery-item">
+        <a href="${largeImageURL}">
+        <img src="${webformatURL}" alt="${tags}" />
+        </a>
+        <div class="image-desc">
+        <div class="image-desc-item">
+        <div class="image-desc-label">Likes</div>
+        <div>${likes}</div>
+        </div>
+        <div class="image-desc-item">
+        <div class="image-desc-label">Views</div>
+        <div>${views}</div>
+        </div>
+        <div class="image-desc-item">
+        <div class="image-desc-label">Comments</div>
+        <div>${comments}</div>
+        </div>
+        <div class="image-desc-item">
+        <div class="image-desc-label">Downloads</div>
+        <div>${downloads}</div>
+        </div>
+        </div>
+        </li>
+        `,
+    ''
+  );
 
-// const url = getBaseUrl();
-// url.searchParams.append("q", "query");
+  gallery.insertAdjacentHTML('beforeend', markup);
+  lightbox.refresh();
+}
 
-// fetch(url)
-//   .then(res => res.json())
-//   .then(images => {
-//     document.body.insertAdjacentHTML("beforeend", `
-//     <img src="${images.hits[0].largeImageURL}"/>
-//     `)
-//   })
+function resetGallery() {
+  loader.classList.remove('hide');
+  gallery.innerHTML = '';
+}
+
+function getAPIParams() {
+  return {
+    key: API_KEY,
+    q: userSearchRequest,
+    orientation: 'horizontal',
+    image_type: 'photo',
+    safesearch: true,
+  };
+}
+
+function handleAPIError() {
+  showMessage('Oops... Something went wrong');
+}

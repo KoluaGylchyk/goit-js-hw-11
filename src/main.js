@@ -1,18 +1,15 @@
-import axios from 'axios';
 import showMessage from './libraries-scripts/iziToast';
 import lightbox from './libraries-scripts/lightbox.js';
 
 const API_KEY = '41474300-2fa05bee877be877b8dc1781f';
-const API_BASE_URL = 'https://pixabay.com/api/';
-let userSearchRequest;
-
-axios.defaults.baseURL = API_BASE_URL;
-axios.defaults.params = {
+const API_DEFAULT_PARAMS = {
   key: API_KEY,
   orientation: 'horizontal',
   image_type: 'photo',
   safesearch: true,
 };
+const API_BASE_URL = 'https://pixabay.com/api/?';
+let userSearchRequest;
 
 const form = document.querySelector('#form'),
   searchInput = document.querySelector('#searchInput'),
@@ -28,28 +25,37 @@ async function handleFormSubmit(e) {
     return showMessage('Please enter your search query!');
   }
   resetGallery();
-  await fetchAndRenderImages();
+  fetchAndRenderImages();
 }
 
-async function fetchAndRenderImages() {
-  try {
-    const response = await axios.get(API_BASE_URL, {
-      params: {
+function fetchAndRenderImages() {
+  fetch(
+    API_BASE_URL +
+      new URLSearchParams({
+        ...API_DEFAULT_PARAMS,
         q: userSearchRequest,
-      },
+      })
+  )
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(response.status);
+      }
+      return response.json();
+    })
+    .then(images => {
+      if (images.hits.length === 0) {
+        return showMessage(
+          'Sorry, no images match your search query. Please try again!'
+        );
+      }
+      renderImages(images.hits);
+    })
+    .catch(error => {
+      handleAPIError(error);
+    })
+    .finally(() => {
+      loader.classList.add('hide');
     });
-    const images = response.data;
-    if (images.hits.length === 0) {
-      return showMessage(
-        'Sorry, no images match your search query. Please try again!'
-      );
-    }
-    renderImages(images.hits);
-  } catch (error) {
-    handleAPIError(error);
-  } finally {
-    loader.classList.add('hide');
-  }
 }
 
 function renderImages(images) {
@@ -97,8 +103,8 @@ function resetGallery() {
 }
 
 function handleAPIError(error) {
-  console.log(error)
-  error?.response?.data 
-    ? showMessage(error.response.data )
+  console.log(error);
+  error?.response?.data
+    ? showMessage(error.response.data)
     : showMessage('Oops... Something went wrong');
 }

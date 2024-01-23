@@ -4,21 +4,26 @@ import lightbox from './libraries-scripts/lightbox.js';
 
 const API_KEY = '41474300-2fa05bee877be877b8dc1781f';
 const API_BASE_URL = 'https://pixabay.com/api/';
+let userSearchRequest;
+
 axios.defaults.baseURL = API_BASE_URL;
+axios.defaults.params = {
+  key: API_KEY,
+  orientation: 'horizontal',
+  image_type: 'photo',
+  safesearch: true,
+};
 
 const form = document.querySelector('#form'),
   searchInput = document.querySelector('#searchInput'),
   gallery = document.querySelector('#gallery'),
   loader = document.querySelector('.loader');
 
-let userSearchRequest;
-
 form.addEventListener('submit', handleFormSubmit);
 
 async function handleFormSubmit(e) {
   e.preventDefault();
   userSearchRequest = searchInput.value.trim();
-  loader.classList.add('hide');
   if (!userSearchRequest) {
     return showMessage('Please enter your search query!');
   }
@@ -29,7 +34,9 @@ async function handleFormSubmit(e) {
 async function fetchAndRenderImages() {
   try {
     const response = await axios.get(API_BASE_URL, {
-      params: getAPIParams(),
+      params: {
+        q: userSearchRequest,
+      },
     });
     const images = response.data;
     if (images.hits.length === 0) {
@@ -39,7 +46,7 @@ async function fetchAndRenderImages() {
     }
     renderImages(images.hits);
   } catch (error) {
-    handleAPIError();
+    handleAPIError(error);
   } finally {
     loader.classList.add('hide');
   }
@@ -89,16 +96,9 @@ function resetGallery() {
   gallery.innerHTML = '';
 }
 
-function getAPIParams() {
-  return {
-    key: API_KEY,
-    q: userSearchRequest,
-    orientation: 'horizontal',
-    image_type: 'photo',
-    safesearch: true,
-  };
-}
-
-function handleAPIError() {
-  showMessage('Oops... Something went wrong');
+function handleAPIError(error) {
+  console.log(error)
+  error?.response?.data 
+    ? showMessage(error.response.data )
+    : showMessage('Oops... Something went wrong');
 }
